@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/welcomeFragment">
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="com.example.food_traveler.ui.fragments.WelcomeFragment"
+        android:label="Welcome Fragment" >
+        <action
+            android:id="@+id/action_welcomeFragment_to_discoverFragment"
+            app:destination="@id/discoverFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/discoverFragment"
+        android:name="com.example.food_traveler.ui.fragments.DiscoverFragment"
+        android:label="Discover Fragment">
+        <action
+            android:id="@+id/action_discoverFragment_to_detailsFragment"
+            app:destination="@id/detailsFragment" />
+    </fragment>
+    
+    <fragment
+        android:id="@+id/detailsFragment"
+        android:name="com.example.food_traveler.ui.fragments.DetailsFragment"
+        android:label="Details Fragment" />
+    
+    <fragment
+        android:id="@+id/myTripsFragment"
+        android:name="com.example.food_traveler.ui.fragments.MyTripsFragment"
+        android:label="My Trips Fragment" />
+    
+    <fragment
+        android:id="@+id/reviewsFragment"
+        android:name="com.example.food_traveler.ui.fragments.ReviewsFragment"
+        android:label="Reviews Fragment" />
+    
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.food_traveler.ui.fragments.ProfileFragment"
+        android:label="Profile Fragment" />
+</navigation>

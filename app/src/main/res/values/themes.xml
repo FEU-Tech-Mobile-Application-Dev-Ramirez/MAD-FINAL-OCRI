@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Food_traveler" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/burgundy</item>
+        <item name="colorSecondary">@color/gold</item>
+        <item name="colorTertiary">@color/cream</item>
+        <item name="android:statusBarColor">@color/burgundy</item>
+    </style>
+</resources>
