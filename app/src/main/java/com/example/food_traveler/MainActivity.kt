@@ -31,20 +31,16 @@ class MainActivity : AppCompatActivity() {
                     navController.navigate(R.id.discoverFragment)
                     true
                 }
-                R.id.navigation_trips -> {
-                    navController.navigate(R.id.myTripsFragment)
-                    true
-                }
-                R.id.navigation_reviews -> {
-                    navController.navigate(R.id.reviewsFragment)
-                    true
-                }
                 R.id.navigation_profile -> {
                     navController.navigate(R.id.profileFragment)
                     true
                 }
                 else -> false
             }
+        }
+
+        if (savedInstanceState == null) {
+            navController.navigate(R.id.welcomeFragment)
         }
     }
 }

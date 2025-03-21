@@ -5,15 +5,7 @@
         android:icon="@drawable/ic_search"
         android:title="@string/discover" />
     <item
-        android:id="@+id/navigation_trips"
-        android:icon="@drawable/ic_map"
-        android:title="@string/my_trips" />
-    <item
-        android:id="@+id/navigation_reviews"
-        android:icon="@drawable/ic_star"
-        android:title="@string/reviews" />
-    <item
         android:id="@+id/navigation_profile"
         android:icon="@drawable/ic_person"
         android:title="@string/profile" />
-</menu> 
+</menu>

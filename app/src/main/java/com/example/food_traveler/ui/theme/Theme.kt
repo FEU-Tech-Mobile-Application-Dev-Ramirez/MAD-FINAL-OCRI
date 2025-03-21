@@ -10,42 +10,65 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = Burgundy,
-    secondary = Gold,
-    tertiary = Cream,
-    background = White,
-    surface = White,
+    primary = BurgundyPrimary,
     onPrimary = White,
+    primaryContainer = BurgundyLight,
+    onPrimaryContainer = White,
+    
+    secondary = GoldAccent,
     onSecondary = Black,
-    onTertiary = Black,
+    secondaryContainer = GoldAccent.copy(alpha = 0.3f),
+    onSecondaryContainer = Black,
+    
+    tertiary = BurgundyDark,
+    onTertiary = White,
+    
+    background = IvoryBackground,
     onBackground = TextPrimary,
-    onSurface = TextPrimary
+    
+    surface = White,
+    onSurface = TextPrimary,
+    
+    surfaceVariant = LightGray,
+    onSurfaceVariant = TextSecondary
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = BurgundyDark,
-    secondary = GoldDark,
-    tertiary = CreamDark,
-    background = Black,
-    surface = Black,
+    primary = BurgundyPrimary,
     onPrimary = White,
+    primaryContainer = BurgundyDark,
+    onPrimaryContainer = White,
+    
+    secondary = GoldAccent,
     onSecondary = Black,
-    onTertiary = Black,
+    secondaryContainer = GoldAccent.copy(alpha = 0.7f),
+    onSecondaryContainer = Black,
+    
+    tertiary = BurgundyLight,
+    onTertiary = White,
+    
+    background = Black,
     onBackground = White,
-    onSurface = White
+    
+    surface = Color(0xFF121212),
+    onSurface = White,
+    
+    surfaceVariant = Gray,
+    onSurfaceVariant = LightGray
 )
 
 @Composable
 fun FoodTravelerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

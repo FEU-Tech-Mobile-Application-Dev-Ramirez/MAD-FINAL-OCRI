@@ -1,7 +1,9 @@
 <resources>
-    <string name="app_name">Foodie Traveler</string>
-    <string name="discover">Discover</string>
-    <string name="my_trips">My Trips</string>
+    <string name="app_name">Food Traveler</string>
+    <string name="discover">Community</string>
     <string name="reviews">Reviews</string>
-    <string name="profile">Profile</string>
+    <string name="profile">My Profile</string>
+    <string name="login">Login</string>
+    <string name="welcome">Welcome to Food Traveler</string>
+    <string name="get_started">Get Started</string>
 </resources>
