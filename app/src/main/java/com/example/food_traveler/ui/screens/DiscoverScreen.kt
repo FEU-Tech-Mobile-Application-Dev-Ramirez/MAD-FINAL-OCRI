@@ -14,12 +14,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import coil.compose.AsyncImage
 import com.example.food_traveler.data.Restaurant
 import com.example.food_traveler.R
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import android.util.Log
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarHalf
+import androidx.compose.material.icons.filled.StarOutline
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.AnimatedVisibility
 
 @Composable
 fun DiscoverScreen(
@@ -79,30 +93,82 @@ fun SearchBar(
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier,
-        placeholder = { Text("Search restaurants...") },
-        leadingIcon = { 
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search"
-            )
-        },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = "Clear search"
+    var showFilterOptions by remember { mutableStateOf(false) }
+    val filterOptions = listOf("Vegetarian", "Vegan", "Gluten-Free", "Halal", "Spicy")
+    var selectedFilters by remember { mutableStateOf(setOf<String>()) }
+    
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Search restaurants...") },
+            leadingIcon = { 
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search"
+                )
+            },
+            trailingIcon = {
+                Row {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { onQueryChange("") }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear search"
+                            )
+                        }
+                    }
+                    IconButton(onClick = { showFilterOptions = !showFilterOptions }) {
+                        Icon(
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = "Filter options"
+                        )
+                    }
+                }
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(24.dp)
+        )
+        
+        AnimatedVisibility(
+            visible = showFilterOptions,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp)
+            ) {
+                items(filterOptions) { option ->
+                    val isSelected = selectedFilters.contains(option)
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = {
+                            selectedFilters = if (isSelected) {
+                                selectedFilters - option
+                            } else {
+                                selectedFilters + option
+                            }
+                        },
+                        label = { Text(option) },
+                        leadingIcon = if (isSelected) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        } else null
                     )
                 }
             }
-        },
-        singleLine = true,
-        shape = RoundedCornerShape(24.dp)
-    )
+        }
+    }
 }
 
 @Composable
@@ -111,7 +177,7 @@ fun CuisineFilters(
     onCuisineSelected: (String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val cuisines = listOf("Italian", "Japanese", "Mexican", "Indian", "Thai")
+    val cuisines = listOf("Italian", "Japanese", "Mexican", "Street Food", "Farm to Table")
     
     ScrollableTabRow(
         selectedTabIndex = cuisines.indexOf(selectedCuisine).takeIf { it >= 0 } ?: 0,
@@ -125,12 +191,84 @@ fun CuisineFilters(
             text = { Text("All") }
         )
         
-        cuisines.forEach { cuisine ->
+        cuisines.forEachIndexed { index, cuisine ->
+            val cuisineImage = when (cuisine) {
+                "Italian" -> R.drawable.italian
+                "Japanese" -> R.drawable.sushi
+                "Mexican" -> R.drawable.mexican
+                "Street Food" -> R.drawable.restaurant1 // Using restaurant1 as fallback for streetfood
+                "Farm to Table" -> R.drawable.farmtotable
+                else -> null
+            }
+            
             Tab(
                 selected = selectedCuisine == cuisine,
                 onClick = { onCuisineSelected(cuisine) },
-                text = { Text(cuisine) }
-            )
+                modifier = Modifier.height(80.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(4.dp)
+                ) {
+                    if (cuisineImage != null) {
+                        Image(
+                            painter = painterResource(id = cuisineImage),
+                            contentDescription = cuisine,
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    Text(
+                        text = cuisine,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RatingBar(
+    rating: Float,
+    maxRating: Int = 5,
+    onRatingChanged: (Float) -> Unit = {},
+    isInteractive: Boolean = false,
+    starSize: Dp = 16.dp,
+    starColor: Color = MaterialTheme.colorScheme.secondary,
+    unfilledStarColor: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+) {
+    Row {
+        for (i in 1..maxRating) {
+            val isFilled = i <= rating
+            val isHalfFilled = i > rating && i - 0.5f <= rating
+            
+            Box(
+                modifier = Modifier
+                    .size(starSize)
+                    .then(
+                        if (isInteractive) {
+                            Modifier.clickable { onRatingChanged(i.toFloat()) }
+                        } else {
+                            Modifier
+                        }
+                    )
+            ) {
+                Icon(
+                    imageVector = if (isHalfFilled) Icons.Default.StarHalf else if (isFilled) Icons.Default.Star else Icons.Default.StarOutline,
+                    contentDescription = "Rating $i of $maxRating",
+                    tint = if (isFilled || isHalfFilled) starColor else unfilledStarColor,
+                    modifier = Modifier.size(starSize)
+                )
+            }
+            
+            if (i < maxRating) {
+                Spacer(modifier = Modifier.width(2.dp))
+            }
         }
     }
 }
@@ -141,6 +279,9 @@ fun RestaurantCard(
     modifier: Modifier = Modifier,
     onRestaurantClicked: (Restaurant) -> Unit
 ) {
+    // Create mutable state for rating to allow user interaction
+    var currentRating by remember { mutableStateOf(restaurant.rating) }
+    
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -148,13 +289,16 @@ fun RestaurantCard(
         onClick = { onRestaurantClicked(restaurant) }
     ) {
         Column {
-            // Use the restaurant image from the drawable folder based on ID
-            val restaurantImage = when (restaurant.id) {
-                "1" -> R.drawable.restaurant1
-                "2" -> R.drawable.restaurant2
-                "3" -> R.drawable.restaurant3
-                // Remove or comment out the line below if restaurant4 does not exist
-                // "4" -> R.drawable.restaurant4 
+            // Choose image based on cuisine or ID
+            val restaurantImage = when {
+                restaurant.cuisine == "Italian" -> R.drawable.italian
+                restaurant.cuisine == "Japanese" -> R.drawable.sushi
+                restaurant.cuisine == "Mexican" -> R.drawable.mexican
+                restaurant.cuisine == "Street Food" -> R.drawable.restaurant1 // Using restaurant1 instead of streetfood
+                restaurant.cuisine == "Farm to Table" -> R.drawable.farmtotable
+                restaurant.id == "1" -> R.drawable.restaurant1
+                restaurant.id == "2" -> R.drawable.restaurant2
+                restaurant.id == "3" -> R.drawable.restaurant3
                 else -> null // No local image available
             }
             
@@ -200,6 +344,30 @@ fun RestaurantCard(
                         overflow = TextOverflow.Ellipsis
                     )
                     PriceLevelIndicator(restaurant.priceLevel)
+                }
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                // Rating with stars
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    RatingBar(
+                        rating = currentRating,
+                        isInteractive = true,
+                        onRatingChanged = { newRating ->
+                            currentRating = newRating
+                            // Here you would typically update a database or repository
+                            // For now we just update the local state
+                        }
+                    )
+                    
+                    Text(
+                        text = String.format("%.1f", currentRating),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 
                 Spacer(modifier = Modifier.height(4.dp))

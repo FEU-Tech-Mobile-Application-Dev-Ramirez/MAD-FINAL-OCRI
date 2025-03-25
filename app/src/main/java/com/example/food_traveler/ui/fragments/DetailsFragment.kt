@@ -58,7 +58,7 @@ class DetailsFragment : Fragment() {
                 cuisine = "Italian",
                 rating = 4.5f,
                 priceLevel = 3,
-                imageUrl = "restaurant1.jpg",
+                imageUrl = "italian.jpg",
                 address = "123 Main St, Anytown",
                 distance = 1.2f,
                 country = "Italy"
@@ -69,7 +69,7 @@ class DetailsFragment : Fragment() {
                 cuisine = "Japanese",
                 rating = 4.7f,
                 priceLevel = 4,
-                imageUrl = "restaurant2.jpg",
+                imageUrl = "sushi.jpg",
                 address = "456 Oak Ave, Anytown",
                 distance = 0.8f,
                 country = "Japan"
@@ -80,7 +80,7 @@ class DetailsFragment : Fragment() {
                 cuisine = "Mexican",
                 rating = 4.2f,
                 priceLevel = 2,
-                imageUrl = "restaurant3.jpg",
+                imageUrl = "mexican.jpg",
                 address = "789 Pine Blvd, Anytown",
                 distance = 1.5f,
                 country = "Mexico"

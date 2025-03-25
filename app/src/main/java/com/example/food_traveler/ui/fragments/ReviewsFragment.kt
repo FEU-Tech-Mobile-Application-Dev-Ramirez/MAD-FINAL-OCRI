@@ -61,11 +61,16 @@ fun ReviewCard(restaurant: Restaurant) {
         shape = RoundedCornerShape(12.dp)
     ) {
         Column {
-            // Use the restaurant image from the drawable folder based on ID
-            val restaurantImage = when (restaurant.id) {
-                "1" -> R.drawable.restaurant1
-                "2" -> R.drawable.restaurant2
-                "3" -> R.drawable.restaurant3
+            // Use the restaurant image from the drawable folder based on ID and cuisine
+            val restaurantImage = when {
+                restaurant.cuisine == "Italian" -> R.drawable.italian
+                restaurant.cuisine == "Japanese" -> R.drawable.sushi
+                restaurant.cuisine == "Mexican" -> R.drawable.mexican
+                restaurant.cuisine == "Street Food" -> R.drawable.restaurant1 // Using restaurant1 as fallback
+                restaurant.cuisine == "Farm to Table" -> R.drawable.farmtotable
+                restaurant.id == "1" -> R.drawable.restaurant1
+                restaurant.id == "2" -> R.drawable.restaurant2
+                restaurant.id == "3" -> R.drawable.restaurant3
                 else -> null // No local image available
             }
 

@@ -1,6 +1,7 @@
 package com.example.food_traveler.data
 
 import com.example.food_traveler.model.Post
+import com.example.food_traveler.model.Comment
 import java.util.Date
 import java.util.UUID
 
@@ -11,7 +12,7 @@ object PostRepository {
             userId = "1",
             title = "Amazing Italian Dinner",
             content = "Had the most amazing pasta at La Piazza last night. The ambiance was perfect and the service was exceptional. The chef even came out to greet us! Definitely worth a visit if you're in the area.",
-            imageUrl = "restaurant1.jpg",
+            imageUrl = "italian.jpg",
             restaurantId = null,
             timestamp = Date(System.currentTimeMillis() - 86400000),
             likes = 15
@@ -32,7 +33,7 @@ object PostRepository {
             userId = "2",
             title = "Sushi Experience",
             content = "The freshest sushi I've ever had. Chef's special roll was out of this world! I highly recommend trying the omakase menu - the chef's selection was outstanding and introduced me to flavors I wouldn't have tried otherwise.",
-            imageUrl = "restaurant2.jpg",
+            imageUrl = "sushi.jpg",
             restaurantId = null,
             timestamp = Date(System.currentTimeMillis() - 172800000),
             likes = 12
@@ -42,7 +43,7 @@ object PostRepository {
             userId = "2",
             title = "Street Food Festival",
             content = "Visited the annual street food festival downtown. So many amazing vendors and flavors from around the world. My favorite was the Thai curry stand!",
-            imageUrl = "streetfood.jpg",
+            imageUrl = "mexican.jpg",
             restaurantId = null,
             timestamp = Date(System.currentTimeMillis() - 345600000),
             likes = 20
@@ -53,7 +54,7 @@ object PostRepository {
             userId = "3",
             title = "Mexican Fiesta",
             content = "The tacos at Taco Fiesta are authentic and delicious. Highly recommend! The homemade salsa is to die for. I asked for the recipe but it's a family secret passed down for generations.",
-            imageUrl = "restaurant3.jpg",
+            imageUrl = "mexican.jpg",
             restaurantId = null,
             timestamp = Date(System.currentTimeMillis() - 259200000),
             likes = 18
@@ -63,12 +64,14 @@ object PostRepository {
             userId = "3",
             title = "Farm to Table Experience",
             content = "Visited a local farm restaurant where everything is grown on site. The freshness of the ingredients really comes through in every dish. We even got a tour of the gardens!",
-            imageUrl = "farm.jpg",
+            imageUrl = "farmtotable.jpg",
             restaurantId = null,
             timestamp = Date(System.currentTimeMillis() - 518400000),
             likes = 14
         )
     )
+    
+    private val comments = mutableListOf<Comment>()
     
     fun getAllPosts(): List<Post> = posts.sortedByDescending { it.timestamp }
     
@@ -95,6 +98,24 @@ object PostRepository {
     fun deletePost(postId: String): Boolean {
         val post = posts.find { it.id == postId } ?: return false
         return posts.remove(post)
+    }
+
+    // Comment-related functions
+    fun getCommentsForPost(postId: String): List<Comment> =
+        comments.filter { it.postId == postId }.sortedByDescending { it.timestamp }
+
+    fun addComment(postId: String, userId: String, content: String) {
+        val comment = Comment(
+            id = UUID.randomUUID().toString(),
+            postId = postId,
+            userId = userId,
+            content = content
+        )
+        comments.add(comment)
+    }
+
+    fun deleteComment(commentId: String): Boolean {
+        return comments.removeIf { it.id == commentId }
     }
 }
 
