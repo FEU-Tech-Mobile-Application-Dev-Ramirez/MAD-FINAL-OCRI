@@ -34,6 +34,15 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.AnimatedVisibility
+import com.example.food_traveler.data.AdminRepository
+import com.example.food_traveler.data.PostRepository
+import com.example.food_traveler.data.UserRepository
+import com.example.food_traveler.model.Post
+import com.example.food_traveler.model.PostStatus
+import com.example.food_traveler.ui.components.CommunityPost
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun DiscoverScreen(
@@ -483,4 +492,213 @@ private val sampleRestaurants = listOf(
     //     distance = 0.5f,
     //     country = "Mexico"
     // )
-) 
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DiscoverScreen() {
+    val approvedPosts = remember { mutableStateOf(AdminRepository.getApprovedPosts()) }
+    var showCreatePost by remember { mutableStateOf(false) }
+    var postContent by remember { mutableStateOf("") }
+    var postRating by remember { mutableStateOf(0f) }
+    val currentUser = remember { UserRepository.getCurrentUser() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showSnackbar by remember { mutableStateOf(false) }
+    var snackbarMessage by remember { mutableStateOf("") }
+    
+    LaunchedEffect(Unit) {
+        // Initially load the approved posts
+        approvedPosts.value = PostRepository.getAllPosts().filter { it.status == PostStatus.APPROVED }
+    }
+    
+    LaunchedEffect(showSnackbar) {
+        if (showSnackbar) {
+            snackbarHostState.showSnackbar(snackbarMessage)
+            showSnackbar = false
+        }
+    }
+    
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showCreatePost = true }
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Create post")
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Community",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            
+            if (approvedPosts.value.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No posts yet. Be the first to share your experience!")
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(approvedPosts.value) { post ->
+                        CommunityPost(
+                            post = post,
+                            onRateClick = { rating ->
+                                if (currentUser != null) {
+                                    PostRepository.ratePost(post.id, currentUser.id, rating)
+                                    // Update the list to reflect changes
+                                    approvedPosts.value = PostRepository.getAllPosts()
+                                        .filter { it.status == PostStatus.APPROVED }
+                                    snackbarMessage = "Rating submitted: $rating stars"
+                                    showSnackbar = true
+                                } else {
+                                    snackbarMessage = "Please log in to rate posts"
+                                    showSnackbar = true
+                                }
+                            },
+                            onAddComment = { commentContent ->
+                                if (currentUser != null) {
+                                    PostRepository.addComment(post.id, currentUser.id, commentContent)
+                                    // Update the current post to reflect the new comment
+                                    approvedPosts.value = PostRepository.getAllPosts()
+                                        .filter { it.status == PostStatus.APPROVED }
+                                    snackbarMessage = "Comment added"
+                                    showSnackbar = true
+                                } else {
+                                    snackbarMessage = "Please log in to comment"
+                                    showSnackbar = true
+                                }
+                            },
+                            currentUserRating = if (currentUser != null) PostRepository.getRating(post.id, currentUser.id) else 0f,
+                            comments = PostRepository.getCommentsForPost(post.id),
+                            onLikeClick = {
+                                // Handle like functionality here if needed
+                                snackbarMessage = "Post liked!"
+                                showSnackbar = true
+                            },
+                            onCommentClick = {
+                                // Handle comment click functionality here if needed
+                                snackbarMessage = "Comments section expanded"
+                                showSnackbar = true
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+    
+    if (showCreatePost) {
+        CreatePostDialog(
+            content = postContent,
+            rating = postRating,
+            onContentChange = { postContent = it },
+            onRatingChange = { postRating = it },
+            onDismiss = { 
+                showCreatePost = false
+                postContent = ""
+                postRating = 0f
+            },
+            onSubmit = {
+                if (postContent.isNotBlank() && currentUser != null) {
+                    val newPost = Post(
+                        id = "",
+                        userId = currentUser.id,
+                        userName = currentUser.displayName,
+                        title = "Food Experience",
+                        content = postContent,
+                        status = if (currentUser.isAdmin) PostStatus.APPROVED else PostStatus.PENDING,
+                        averageRating = postRating,
+                        ratingCount = 1,
+                        ratings = listOf(postRating)
+                    )
+                    
+                    PostRepository.addPost(newPost)
+                    
+                    // Refresh the posts list if the new post is approved
+                    if (newPost.status == PostStatus.APPROVED) {
+                        approvedPosts.value = PostRepository.getAllPosts()
+                            .filter { it.status == PostStatus.APPROVED }
+                    }
+                    
+                    showCreatePost = false
+                    postContent = ""
+                    postRating = 0f
+                    
+                    snackbarMessage = if (currentUser.isAdmin) "Post published" else "Post submitted for approval"
+                    showSnackbar = true
+                }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreatePostDialog(
+    content: String,
+    rating: Float,
+    onContentChange: (String) -> Unit,
+    onRatingChange: (Float) -> Unit,
+    onDismiss: () -> Unit,
+    onSubmit: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Create New Post") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = content,
+                    onValueChange = onContentChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    label = { Text("Share your food experience...") },
+                    placeholder = { Text("What did you eat? How was it?") }
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text("Rate your experience:")
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                RatingBar(
+                    rating = rating,
+                    onRatingChanged = onRatingChange,
+                    isInteractive = true,
+                    starSize = 32.dp
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onSubmit,
+                enabled = content.isNotBlank() && rating > 0
+            ) {
+                Text("Post")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+} 

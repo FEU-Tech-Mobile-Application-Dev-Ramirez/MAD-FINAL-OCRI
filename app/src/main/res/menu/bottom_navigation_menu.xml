@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/navigation_discover"
-        android:icon="@drawable/ic_search"
-        android:title="@string/discover" />
+        android:id="@+id/navigation_community"
+        android:icon="@drawable/ic_community"
+        android:title="Community" />
     <item
         android:id="@+id/navigation_profile"
         android:icon="@drawable/ic_person"

@@ -11,7 +11,7 @@ import com.example.food_traveler.data.UserRepository
 import com.example.food_traveler.ui.components.CommunityFeedScreen
 import com.example.food_traveler.ui.theme.FoodTravelerTheme
 
-class DiscoverFragment : Fragment() {
+class CommunityFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

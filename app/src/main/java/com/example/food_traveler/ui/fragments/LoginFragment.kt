@@ -24,18 +24,18 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        val usernameEditText = view.findViewById<EditText>(R.id.usernameEditText)
+        val emailEditText = view.findViewById<EditText>(R.id.usernameEditText)
         val passwordEditText = view.findViewById<EditText>(R.id.passwordEditText)
         val loginButton = view.findViewById<Button>(R.id.loginButton)
         
         loginButton.setOnClickListener {
-            val username = usernameEditText.text.toString()
+            val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
             
-            if (UserRepository.login(username, password)) {
-                findNavController().navigate(R.id.action_loginFragment_to_discoverFragment)
+            if (UserRepository.login(email, password)) {
+                findNavController().navigate(R.id.action_loginFragment_to_profileFragment)
             } else {
-                Toast.makeText(context, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Invalid email or password", Toast.LENGTH_SHORT).show()
             }
         }
     }

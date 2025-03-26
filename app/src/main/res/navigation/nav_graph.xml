@@ -2,7 +2,28 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/welcomeFragment">
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/discoverFragment">
+
+    <fragment
+        android:id="@+id/discoverFragment"
+        android:name="com.example.food_traveler.ui.screens.DiscoverScreen"
+        android:label="@string/discover" />
+
+    <fragment
+        android:id="@+id/reviewsFragment"
+        android:name="com.example.food_traveler.ui.screens.ReviewsScreen"
+        android:label="@string/reviews" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.food_traveler.ui.screens.ProfileScreen"
+        android:label="@string/profile" />
+
+    <fragment
+        android:id="@+id/adminFragment"
+        android:name="com.example.food_traveler.ui.screens.AdminScreen"
+        android:label="@string/admin" />
 
     <fragment
         android:id="@+id/welcomeFragment"
@@ -11,6 +32,9 @@
         <action
             android:id="@+id/action_welcomeFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_welcomeFragment_to_signUpFragment"
+            app:destination="@id/signUpFragment" />
     </fragment>
 
     <fragment
@@ -18,25 +42,21 @@
         android:name="com.example.food_traveler.ui.fragments.LoginFragment"
         android:label="Login Fragment" >
         <action
-            android:id="@+id/action_loginFragment_to_discoverFragment"
-            app:destination="@id/discoverFragment" />
+            android:id="@+id/action_loginFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/discoverFragment"
-        android:name="com.example.food_traveler.ui.fragments.DiscoverFragment"
-        android:label="Discover Fragment">
+        android:id="@+id/signUpFragment"
+        android:name="com.example.food_traveler.ui.fragments.SignUpFragment"
+        android:label="Sign Up Fragment" >
         <action
-            android:id="@+id/action_discoverFragment_to_profileFragment"
+            android:id="@+id/action_signUpFragment_to_profileFragment"
             app:destination="@id/profileFragment" />
     </fragment>
     
     <fragment
-        android:id="@+id/profileFragment"
-        android:name="com.example.food_traveler.ui.fragments.ProfileFragment"
-        android:label="Profile Fragment">
-        <action
-            android:id="@+id/action_profileFragment_to_discoverFragment"
-            app:destination="@id/discoverFragment" />
-    </fragment>
+        android:id="@+id/communityFragment"
+        android:name="com.example.food_traveler.ui.fragments.CommunityFragment"
+        android:label="Community Fragment" />
 </navigation>

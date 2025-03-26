@@ -47,11 +47,4 @@
         android:text="Log In"
         android:padding="12dp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Use one of these accounts:\nuser1/password1\nuser2/password2\nuser3/password3"
-        android:textAlignment="center"/>
-
 </LinearLayout>
