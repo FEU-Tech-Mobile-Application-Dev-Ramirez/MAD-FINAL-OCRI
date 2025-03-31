@@ -1,0 +1,24 @@
+Welcome Screen Design for Food Traveler App
+
+Overview:
+- The welcome screen is the first interface users see upon launching the Food Traveler app. It sets the tone for the app experience by being visually appealing, informative, and easy to navigate.
+
+Design Elements: 
+Background: A high-quality, inviting image of a global culinary experience (e.g., a table with diverse dishes or a scenic food market).
+Logo & App Name: Centered at the top with a modern, sleek font to establish branding.
+- Call-to-Action Buttons:Two prominent buttons:
+  -Sign Up
+  -Log In
+  -Log Out
+
+Color Scheme:
+-Red and white palette for a bold, clean, and appetizing look.
+
+Typography:  
+- Bold and modern for the app name.
+- Clean and readable fonts for the tagline and buttons.
+
+User Experience Considerations:
+- The layout is minimalistic to ensure quick loading.
+- Touch-friendly buttons for seamless navigation.
+
