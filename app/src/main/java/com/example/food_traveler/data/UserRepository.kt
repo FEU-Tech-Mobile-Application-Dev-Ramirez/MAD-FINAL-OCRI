@@ -7,11 +7,11 @@ object UserRepository {
     private var currentUser: User? = null
     
     init {
-        // Add a default admin user
+        // Add a dedicated admin user with fixed credentials
         val adminUser = User(
             id = "admin123",
-            email = "admin@example.com",
-            displayName = "Admin",
+            email = "admin@foodtraveler.com",
+            displayName = "Food Traveler Admin",
             isAdmin = true
         )
         users[adminUser.id] = adminUser
@@ -31,9 +31,16 @@ object UserRepository {
     fun isCurrentUserAdmin(): Boolean = currentUser?.isAdmin == true
     
     fun updateUser(user: User) {
-        users[user.id] = user
+        // Prevent changing admin status through update
+        val existingUser = users[user.id]
+        val updatedUser = if (existingUser?.isAdmin == true) {
+            user.copy(isAdmin = true)
+        } else {
+            user.copy(isAdmin = false)
+        }
+        users[user.id] = updatedUser
         if (currentUser?.id == user.id) {
-            currentUser = user
+            currentUser = updatedUser
         }
     }
     
@@ -57,7 +64,7 @@ object UserRepository {
             id = "user${users.size + 1}",
             email = email,
             displayName = displayName,
-            isAdmin = false
+            isAdmin = false  // Ensure new users are never admins
         )
         users[newUser.id] = newUser
         return newUser

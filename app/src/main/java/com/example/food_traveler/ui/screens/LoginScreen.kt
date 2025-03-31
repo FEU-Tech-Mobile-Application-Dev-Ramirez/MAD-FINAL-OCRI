@@ -107,7 +107,7 @@ fun LoginScreen(
                     
                     // Try to log in
                     if (email == "admin@example.com" && password == "admin") {
-                        // admin login
+                        // admin login - make sure to get the admin user from repository
                         val adminUser = UserRepository.getUserById("admin123")
                         if (adminUser != null) {
                             UserRepository.setCurrentUser(adminUser)
@@ -116,12 +116,11 @@ fun LoginScreen(
                             errorMessage = "Admin user not found"
                         }
                     } else if (UserRepository.login(email, password)) {
+                        // Normal user login succeeded
                         onLoginSuccess()
                     } else {
-                        // For demo purposes, we'll create a new user if login fails
-                        val user = UserRepository.createUser(email, "User")
-                        UserRepository.setCurrentUser(user)
-                        onLoginSuccess()
+                        // Login failed - account doesn't exist
+                        errorMessage = "Account not found. Please sign up first."
                     }
                 },
                 modifier = Modifier

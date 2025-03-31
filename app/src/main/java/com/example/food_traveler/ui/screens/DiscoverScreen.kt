@@ -34,15 +34,25 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.AnimatedVisibility
-import com.example.food_traveler.data.AdminRepository
 import com.example.food_traveler.data.PostRepository
 import com.example.food_traveler.data.UserRepository
 import com.example.food_traveler.model.Post
 import com.example.food_traveler.model.PostStatus
+import com.example.food_traveler.model.Comment
 import com.example.food_traveler.ui.components.CommunityPost
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
+import android.net.Uri
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.Comment
 
 @Composable
 fun DiscoverScreen(
@@ -50,6 +60,11 @@ fun DiscoverScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCuisine by remember { mutableStateOf<String?>(null) }
+    val currentUser = UserRepository.getCurrentUser()
+    
+    // Use a state to trigger refreshes
+    var refreshTrigger by remember { mutableStateOf(0) }
+    val posts by remember(refreshTrigger) { mutableStateOf(PostRepository.getAllPosts().filter { it.status == PostStatus.APPROVED }) }
     
     Column(modifier = Modifier.fillMaxSize()) {
         // App Bar with search
@@ -70,26 +85,50 @@ fun DiscoverScreen(
                 .padding(horizontal = 16.dp)
         )
         
-        // Restaurant list
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            val filteredRestaurants = sampleRestaurants
-                .filter { restaurant ->
-                    (searchQuery.isEmpty() || restaurant.name.contains(searchQuery, ignoreCase = true)) &&
-                    (selectedCuisine == null || restaurant.cuisine == selectedCuisine)
-                }
-            
-            items(filteredRestaurants) { restaurant ->
-                RestaurantCard(
-                    restaurant = restaurant,
-                    onRestaurantClicked = { 
-                        Log.d("DiscoverScreen", "Restaurant clicked: ${restaurant.name}")
-                        onRestaurantClick(restaurant)
-                    }
+        // Posts list
+        if (posts.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No posts yet. Be the first to share your food journey!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(posts.filter { it.status == PostStatus.APPROVED }) { post ->
+                    CommunityPost(
+                        post = post,
+                        onLikeClick = { 
+                            if (currentUser != null) {
+                                PostRepository.likePost(post.id, currentUser.id)
+                                refreshTrigger++ // Trigger refresh
+                            } 
+                        },
+                        onCommentClick = { /* Handle comment click */ },
+                        onRateClick = { rating ->
+                            if (currentUser != null) {
+                                PostRepository.addRating(post.id, currentUser.id, rating)
+                                refreshTrigger++ // Trigger refresh
+                            }
+                        },
+                        onAddComment = { commentContent ->
+                            if (currentUser != null) {
+                                PostRepository.addComment(post.id, currentUser.id, commentContent)
+                                refreshTrigger++ // Trigger refresh
+                            }
+                        },
+                        currentUserRating = if (currentUser != null) PostRepository.getRating(post.id, currentUser.id) else 0f,
+                        comments = PostRepository.getComments(post.id)
+                    )
+                }
             }
         }
     }
@@ -111,7 +150,7 @@ fun SearchBar(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search restaurants...") },
+            placeholder = { Text("Search posts...") },
             leadingIcon = { 
                 Icon(
                     imageVector = Icons.Default.Search,
@@ -200,49 +239,18 @@ fun CuisineFilters(
             text = { Text("All") }
         )
         
-        cuisines.forEachIndexed { index, cuisine ->
-            val cuisineImage = when (cuisine) {
-                "Italian" -> R.drawable.italian
-                "Japanese" -> R.drawable.sushi
-                "Mexican" -> R.drawable.mexican
-                "Street Food" -> R.drawable.restaurant1 // Using restaurant1 as fallback for streetfood
-                "Farm to Table" -> R.drawable.farmtotable
-                else -> null
-            }
-            
+        cuisines.forEach { cuisine ->
             Tab(
                 selected = selectedCuisine == cuisine,
                 onClick = { onCuisineSelected(cuisine) },
-                modifier = Modifier.height(80.dp)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(4.dp)
-                ) {
-                    if (cuisineImage != null) {
-                        Image(
-                            painter = painterResource(id = cuisineImage),
-                            contentDescription = cuisine,
-                            modifier = Modifier
-                                .size(50.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                    Text(
-                        text = cuisine,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
+                text = { Text(cuisine) }
+            )
         }
     }
 }
 
 @Composable
-fun RatingBar(
+fun RestaurantRatingBar(
     rating: Float,
     maxRating: Int = 5,
     onRatingChanged: (Float) -> Unit = {},
@@ -362,7 +370,7 @@ fun RestaurantCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    RatingBar(
+                    RestaurantRatingBar(
                         rating = currentRating,
                         isInteractive = true,
                         onRatingChanged = { newRating ->
@@ -497,7 +505,7 @@ private val sampleRestaurants = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscoverScreen() {
-    val approvedPosts = remember { mutableStateOf(AdminRepository.getApprovedPosts()) }
+    val approvedPosts = remember { mutableStateOf(PostRepository.getAllPosts().filter { it.status == PostStatus.APPROVED }) }
     var showCreatePost by remember { mutableStateOf(false) }
     var postContent by remember { mutableStateOf("") }
     var postRating by remember { mutableStateOf(0f) }
@@ -506,8 +514,11 @@ fun DiscoverScreen() {
     var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
     
-    LaunchedEffect(Unit) {
-        // Initially load the approved posts
+    // Force recomposition when approvedPosts change
+    var refreshTrigger by remember { mutableStateOf(0) }
+    
+    LaunchedEffect(refreshTrigger) {
+        // Update the approved posts list
         approvedPosts.value = PostRepository.getAllPosts().filter { it.status == PostStatus.APPROVED }
     }
     
@@ -556,12 +567,28 @@ fun DiscoverScreen() {
                     items(approvedPosts.value) { post ->
                         CommunityPost(
                             post = post,
+                            onLikeClick = {
+                                if (currentUser != null) {
+                                    PostRepository.likePost(post.id, currentUser.id)
+                                    // Update the list to reflect changes
+                                    refreshTrigger++
+                                    snackbarMessage = "Post liked!"
+                                    showSnackbar = true
+                                } else {
+                                    snackbarMessage = "Please log in to like posts"
+                                    showSnackbar = true
+                                }
+                            },
+                            onCommentClick = {
+                                // Handle comment click functionality here if needed
+                                snackbarMessage = "Comments section expanded"
+                                showSnackbar = true
+                            },
                             onRateClick = { rating ->
                                 if (currentUser != null) {
                                     PostRepository.ratePost(post.id, currentUser.id, rating)
                                     // Update the list to reflect changes
-                                    approvedPosts.value = PostRepository.getAllPosts()
-                                        .filter { it.status == PostStatus.APPROVED }
+                                    refreshTrigger++
                                     snackbarMessage = "Rating submitted: $rating stars"
                                     showSnackbar = true
                                 } else {
@@ -573,8 +600,7 @@ fun DiscoverScreen() {
                                 if (currentUser != null) {
                                     PostRepository.addComment(post.id, currentUser.id, commentContent)
                                     // Update the current post to reflect the new comment
-                                    approvedPosts.value = PostRepository.getAllPosts()
-                                        .filter { it.status == PostStatus.APPROVED }
+                                    refreshTrigger++
                                     snackbarMessage = "Comment added"
                                     showSnackbar = true
                                 } else {
@@ -583,17 +609,7 @@ fun DiscoverScreen() {
                                 }
                             },
                             currentUserRating = if (currentUser != null) PostRepository.getRating(post.id, currentUser.id) else 0f,
-                            comments = PostRepository.getCommentsForPost(post.id),
-                            onLikeClick = {
-                                // Handle like functionality here if needed
-                                snackbarMessage = "Post liked!"
-                                showSnackbar = true
-                            },
-                            onCommentClick = {
-                                // Handle comment click functionality here if needed
-                                snackbarMessage = "Comments section expanded"
-                                showSnackbar = true
-                            }
+                            comments = PostRepository.getComments(post.id)
                         )
                     }
                 }
@@ -614,25 +630,27 @@ fun DiscoverScreen() {
             },
             onSubmit = {
                 if (postContent.isNotBlank() && currentUser != null) {
+                    val imageUri = PostRepository.getAndClearCurrentImageUri()
+                    val location = PostRepository.getAndClearCurrentLocation()
                     val newPost = Post(
                         id = "",
                         userId = currentUser.id,
                         userName = currentUser.displayName,
                         title = "Food Experience",
                         content = postContent,
+                        imageUrl = imageUri?.toString(),
+                        location = location,
                         status = if (currentUser.isAdmin) PostStatus.APPROVED else PostStatus.PENDING,
-                        averageRating = postRating,
-                        ratingCount = 1,
-                        ratings = listOf(postRating)
+                        averageRating = if (postRating > 0) postRating else 0f,
+                        ratingCount = if (postRating > 0) 1 else 0,
+                        ratings = if (postRating > 0) listOf(postRating) else emptyList(),
+                        likes = 0 // Explicitly start with 0 likes
                     )
                     
                     PostRepository.addPost(newPost)
                     
                     // Refresh the posts list if the new post is approved
-                    if (newPost.status == PostStatus.APPROVED) {
-                        approvedPosts.value = PostRepository.getAllPosts()
-                            .filter { it.status == PostStatus.APPROVED }
-                    }
+                    refreshTrigger++
                     
                     showCreatePost = false
                     postContent = ""
@@ -656,6 +674,16 @@ fun CreatePostDialog(
     onDismiss: () -> Unit,
     onSubmit: () -> Unit
 ) {
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var location by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val currentUser = remember { UserRepository.getCurrentUser() }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Create New Post") },
@@ -675,11 +703,89 @@ fun CreatePostDialog(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
+                // Location field
+                OutlinedTextField(
+                    value = location,
+                    onValueChange = { location = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Location") },
+                    placeholder = { Text("Where did you eat?") },
+                    leadingIcon = { 
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Location"
+                        )
+                    }
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Photo selection area
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Add Photo",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    
+                    Button(
+                        onClick = { launcher.launch("image/*") }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AddAPhoto,
+                            contentDescription = "Add photo"
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Select")
+                    }
+                }
+                
+                // Preview selected image
+                selectedImageUri?.let { uri ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                    ) {
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = "Selected image",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        
+                        // Add remove button
+                        IconButton(
+                            onClick = { selectedImageUri = null },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Remove image"
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
                 Text("Rate your experience:")
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                RatingBar(
+                RestaurantRatingBar(
                     rating = rating,
                     onRatingChanged = onRatingChange,
                     isInteractive = true,
@@ -689,7 +795,12 @@ fun CreatePostDialog(
         },
         confirmButton = {
             Button(
-                onClick = onSubmit,
+                onClick = {
+                    // Store the selected image URI and location
+                    PostRepository.setCurrentImageUri(selectedImageUri)
+                    PostRepository.setCurrentLocation(location)
+                    onSubmit()
+                },
                 enabled = content.isNotBlank() && rating > 0
             ) {
                 Text("Post")

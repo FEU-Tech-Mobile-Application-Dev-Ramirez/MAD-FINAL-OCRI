@@ -1,9 +1,12 @@
 package com.example.food_traveler.ui.fragments
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +15,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.example.food_traveler.R
 import com.example.food_traveler.data.PostRepository
@@ -81,7 +87,7 @@ fun ProfileScreen(onLogout: () -> Unit) {
         return
     }
     
-    val userPosts = PostRepository.getPostsByUser(currentUser.id)
+    val userPosts = PostRepository.getPostsByUserId(currentUser.id)
     
     if (showAddPostDialog) {
         AddPostDialog(
@@ -99,14 +105,15 @@ fun ProfileScreen(onLogout: () -> Unit) {
             },
             onConfirm = {
                 if (postTitle.isNotBlank() && postContent.isNotBlank()) {
+                    val imageUri = PostRepository.getAndClearCurrentImageUri()
                     PostRepository.addPost(
                         Post(
-                            id = "",
+                            id = System.currentTimeMillis().toString(),
                             userId = currentUser.id,
                             userName = currentUser.displayName,
                             title = postTitle,
                             content = postContent,
-                            imageUrl = null,
+                            imageUrl = imageUri?.toString(),
                             timestamp = System.currentTimeMillis(),
                             likes = 0,
                             location = postLocation,
@@ -270,9 +277,8 @@ fun UserPostItem(
 ) {
     var commentText by remember { mutableStateOf("") }
     val currentUser = remember { UserRepository.getCurrentUser() }
-    val comments = remember(post.id) { PostRepository.getCommentsForPost(post.id) }
+    val comments = remember(post.id) { PostRepository.getComments(post.id) }
     val commentCount = remember(post.id) { PostRepository.getCommentCount(post.id) }
-    val postRatings = remember(post.id) { PostRepository.getPostRatings(post.id) }
     val userRating = remember(post.id, currentUser?.id) { 
         if (currentUser != null) {
             PostRepository.getRating(post.id, currentUser.id)
@@ -290,6 +296,51 @@ fun UserPostItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            // Post title if available
+            if (post.title.isNotBlank()) {
+                Text(
+                    text = post.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            
+            // Display location if available
+            if (!post.location.isNullOrBlank()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Location",
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = post.location,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            // Post image if available
+            if (post.imageUrl != null) {
+                AsyncImage(
+                    model = post.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            
             // Post content
             Text(
                 text = post.content,
@@ -298,10 +349,11 @@ fun UserPostItem(
 
             // Rating section
             if (currentUser != null) {
+                Spacer(modifier = Modifier.height(8.dp))
                 RatingBar(
                     rating = userRating,
                     onRatingChanged = { rating ->
-                        PostRepository.ratePost(post.id, currentUser.id, rating)
+                        PostRepository.addRating(post.id, currentUser.id, rating)
                     },
                     isInteractive = true
                 )
@@ -465,6 +517,14 @@ fun AddPostDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Create New Post") },
@@ -497,10 +557,78 @@ fun AddPostDialog(
                         .height(150.dp),
                     maxLines = 5
                 )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Photo selection area
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Add Photo",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    
+                    Button(
+                        onClick = { launcher.launch("image/*") }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AddAPhoto,
+                            contentDescription = "Add photo"
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Select")
+                    }
+                }
+                
+                // Preview selected image
+                selectedImageUri?.let { uri ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                    ) {
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = "Selected image",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        
+                        // Add remove button
+                        IconButton(
+                            onClick = { selectedImageUri = null },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Remove image"
+                            )
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
-            Button(onClick = onConfirm) {
+            Button(
+                onClick = {
+                    // Store the selected image URI in a viewModel or pass back to parent
+                    PostRepository.setCurrentImageUri(selectedImageUri)
+                    PostRepository.setCurrentLocation(location)
+                    onConfirm()
+                }
+            ) {
                 Text("Post")
             }
         },

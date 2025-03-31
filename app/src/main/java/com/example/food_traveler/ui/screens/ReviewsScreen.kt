@@ -11,12 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.food_traveler.data.AdminRepository
+import com.example.food_traveler.data.PostRepository
+import com.example.food_traveler.model.PostStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewsScreen() {
-    val approvedPosts = remember { AdminRepository.getApprovedPosts() }
+    val approvedPosts = remember { PostRepository.getAllPosts().filter { it.status == PostStatus.APPROVED } }
     
     Column(
         modifier = Modifier

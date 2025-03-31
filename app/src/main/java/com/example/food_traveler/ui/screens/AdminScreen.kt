@@ -12,16 +12,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.food_traveler.data.AdminRepository
 import com.example.food_traveler.data.PostRepository
+import com.example.food_traveler.data.UserRepository
 import com.example.food_traveler.model.Post
+import com.example.food_traveler.model.PostStatus
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen() {
-    var pendingPosts by remember { mutableStateOf(AdminRepository.getPendingPosts()) }
+    val currentUser = remember { UserRepository.getCurrentUser() }
+    
+    if (currentUser?.isAdmin != true) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Access Denied",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+        return
+    }
+    
+    var pendingPosts by remember { 
+        mutableStateOf(PostRepository.getAllPosts().filter { it.status == PostStatus.PENDING })
+    }
     var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -77,16 +96,16 @@ fun AdminScreen() {
                         PendingPostCard(
                             post = post,
                             onApprove = {
-                                AdminRepository.approvePost(post.id)
+                                PostRepository.updatePostStatus(post.id, PostStatus.APPROVED)
                                 // Refresh the pending posts list
-                                pendingPosts = AdminRepository.getPendingPosts()
+                                pendingPosts = PostRepository.getAllPosts().filter { it.status == PostStatus.PENDING }
                                 snackbarMessage = "Post approved"
                                 showSnackbar = true
                             },
                             onReject = {
-                                AdminRepository.rejectPost(post.id)
+                                PostRepository.updatePostStatus(post.id, PostStatus.REJECTED)
                                 // Refresh the pending posts list
-                                pendingPosts = AdminRepository.getPendingPosts()
+                                pendingPosts = PostRepository.getAllPosts().filter { it.status == PostStatus.PENDING }
                                 snackbarMessage = "Post rejected"
                                 showSnackbar = true
                             }
@@ -99,7 +118,7 @@ fun AdminScreen() {
             
             // Approved Posts Section
             val approvedPosts = remember(pendingPosts) { 
-                PostRepository.getAllPosts().filter { it.status == com.example.food_traveler.model.PostStatus.APPROVED }
+                PostRepository.getAllPosts().filter { it.status == PostStatus.APPROVED }
             }
             
             Text(

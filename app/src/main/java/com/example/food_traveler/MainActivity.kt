@@ -40,7 +40,11 @@ fun MainScreen() {
     val showBottomBar = remember(currentRoute) {
         currentRoute != "login" && currentRoute != "signup" && currentRoute != "welcome"
     }
-    val isLoggedIn = remember { UserRepository.getCurrentUser() != null }
+    
+    // Get current user and track admin status with state that updates dynamically
+    val currentUser by rememberUpdatedState(UserRepository.getCurrentUser())
+    val isLoggedIn = currentUser != null
+    val isAdmin = currentUser?.isAdmin == true
     
     val startDestination = remember {
         if (isLoggedIn) NavigationItem.Discover.route else "login"
@@ -50,12 +54,22 @@ fun MainScreen() {
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
-                    listOf(
-                        NavigationItem.Discover,
-                        NavigationItem.Reviews,
-                        NavigationItem.Profile,
-                        NavigationItem.Admin
-                    ).forEach { item ->
+                    val navItems = if (isAdmin) {
+                        listOf(
+                            NavigationItem.Discover,
+                            NavigationItem.Reviews,
+                            NavigationItem.Profile,
+                            NavigationItem.Admin
+                        )
+                    } else {
+                        listOf(
+                            NavigationItem.Discover,
+                            NavigationItem.Reviews,
+                            NavigationItem.Profile
+                        )
+                    }
+                    
+                    navItems.forEach { item ->
                         NavigationBarItem(
                             icon = { Icon(item.icon, contentDescription = null) },
                             label = { Text(stringResource(item.title)) },
@@ -134,7 +148,20 @@ fun MainScreen() {
                 }
                 
                 composable(NavigationItem.Admin.route) {
-                    AdminScreen()
+                    // Only allow admin users to access this screen
+                    val isCurrentUserAdmin = UserRepository.isCurrentUserAdmin()
+                    if (isCurrentUserAdmin) {
+                        AdminScreen()
+                    } else {
+                        // Redirect non-admin users to discover screen
+                        LaunchedEffect(Unit) {
+                            navController.navigate(NavigationItem.Discover.route) {
+                                popUpTo(NavigationItem.Admin.route) { inclusive = true }
+                            }
+                        }
+                        // Show empty box while redirecting
+                        Box(modifier = Modifier.fillMaxSize())
+                    }
                 }
             }
         }

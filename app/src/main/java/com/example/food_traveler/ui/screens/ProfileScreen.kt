@@ -1,48 +1,46 @@
 package com.example.food_traveler.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.example.food_traveler.data.UserRepository
+import com.example.food_traveler.data.PostRepository
+import com.example.food_traveler.model.PostStatus
+import com.example.food_traveler.ui.components.CommunityPost
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(onLogout: () -> Unit = {}) {
     val currentUser = remember { UserRepository.getCurrentUser() }
     
-    Column(
+    // State to trigger UI refresh when a post is deleted or updated
+    var refreshTrigger by remember { mutableStateOf(0) }
+    
+    // Force recomposition when posts change
+    val userPosts by remember(refreshTrigger) { 
+        mutableStateOf(PostRepository.getPostsByUserId(currentUser?.id ?: ""))
+    }
+    
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         // Profile Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = currentUser?.profileImageUrl ?: "https://example.com/placeholder.jpg",
-                contentDescription = "Profile picture",
+        item {
+            Column(
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column {
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(
                     text = currentUser?.displayName ?: "Guest User",
                     style = MaterialTheme.typography.headlineSmall
@@ -55,105 +53,197 @@ fun ProfileScreen(onLogout: () -> Unit = {}) {
             }
         }
         
-        // Settings
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-        
-        // Admin indicator (not switchable)
-        if (currentUser?.isAdmin == true) {
-            ListItem(
-                headlineContent = { Text("Admin Access") },
-                leadingContent = {
-                    Icon(
-                        imageVector = Icons.Default.AdminPanelSettings,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+        // User Stats
+        item {
+            val approvedPostsCount = userPosts.count { it.status == PostStatus.APPROVED }
+            
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = userPosts.size.toString(),
+                        style = MaterialTheme.typography.titleLarge
                     )
-                },
-                trailingContent = {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = "Admin Access Enabled",
-                        tint = MaterialTheme.colorScheme.primary
+                    Text(
+                        text = "Total Posts",
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
-            )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = approvedPostsCount.toString(),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Text(
+                        text = "Approved",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = (userPosts.size - approvedPostsCount).toString(),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Text(
+                        text = "Pending",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
         }
         
-        // Other settings items
-        ListItem(
-            headlineContent = { Text("Notifications") },
-            leadingContent = {
-                Icon(
-                    Icons.Default.Notifications,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+        // Admin indicator (only shown if user is admin)
+        if (currentUser?.isAdmin == true) {
+            item {
+                Text(
+                    text = "Account Settings",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
-            },
-            trailingContent = {
-                Icon(
-                    Icons.Default.ChevronRight,
-                    contentDescription = "Open notifications settings"
-                )
-            }
-        )
-        
-        ListItem(
-            headlineContent = { Text("Privacy") },
-            leadingContent = {
-                Icon(
-                    Icons.Default.Security,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
-            trailingContent = {
-                Icon(
-                    Icons.Default.ChevronRight,
-                    contentDescription = "Open privacy settings"
+                
+                ListItem(
+                    headlineContent = { Text("Admin Access") },
+                    leadingContent = {
+                        Icon(
+                            imageVector = Icons.Default.AdminPanelSettings,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    trailingContent = {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "Admin Access Enabled",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 )
             }
-        )
+        }
         
-        ListItem(
-            headlineContent = { Text("Help & Support") },
-            leadingContent = {
-                Icon(
-                    Icons.Default.Help,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
-            trailingContent = {
-                Icon(
-                    Icons.Default.ChevronRight,
-                    contentDescription = "Open help and support"
+        // User Posts Section
+        item {
+            Text(
+                text = "My Posts",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+            
+            if (userPosts.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("You haven't posted anything yet.")
+                }
+            }
+        }
+        
+        // Display posts with status indicator
+        items(userPosts) { post ->
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Status indicator
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val statusColor = when(post.status) {
+                        PostStatus.APPROVED -> MaterialTheme.colorScheme.primary
+                        PostStatus.REJECTED -> MaterialTheme.colorScheme.error
+                        else -> MaterialTheme.colorScheme.tertiary
+                    }
+                    val statusText = when(post.status) {
+                        PostStatus.APPROVED -> "Approved"
+                        PostStatus.REJECTED -> "Rejected"
+                        else -> "Pending Approval"
+                    }
+                    
+                    Text(
+                        text = statusText,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = statusColor
+                    )
+                    
+                    // Delete button
+                    IconButton(
+                        onClick = {
+                            // Update immediately after deleting the post
+                            if (PostRepository.deletePost(post.id)) {
+                                refreshTrigger++
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete post",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+                
+                CommunityPost(
+                    post = post,
+                    onLikeClick = { 
+                        if (post.status == PostStatus.APPROVED && currentUser != null) {
+                            PostRepository.likePost(post.id, currentUser.id)
+                            refreshTrigger++ // Trigger refresh
+                        }
+                    },
+                    onCommentClick = { /* Handle comment click */ },
+                    onRateClick = { rating ->
+                        if (currentUser != null && post.status == PostStatus.APPROVED) {
+                            PostRepository.addRating(post.id, currentUser.id, rating)
+                            // Immediately update UI
+                            refreshTrigger++
+                        }
+                    },
+                    onAddComment = { commentContent ->
+                        if (currentUser != null && post.status == PostStatus.APPROVED) {
+                            PostRepository.addComment(post.id, currentUser.id, commentContent)
+                            // Immediately update UI
+                            refreshTrigger++
+                        }
+                    },
+                    currentUserRating = if (currentUser != null) PostRepository.getRating(post.id, currentUser.id) else 0f,
+                    comments = PostRepository.getComments(post.id),
+                    isInteractive = post.status == PostStatus.APPROVED
                 )
             }
-        )
-        
-        Spacer(modifier = Modifier.weight(1f))
+            
+            Spacer(modifier = Modifier.height(16.dp))
+        }
         
         // Logout Button
-        Button(
-            onClick = onLogout,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error
-            )
-        ) {
-            Icon(
-                Icons.Default.Logout,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Logout")
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onLogout,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Icon(
+                    Icons.Default.Logout,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Logout")
+            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 } 
