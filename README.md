@@ -59,7 +59,7 @@ The **Food Traveler App** is designed for food enthusiasts who love to explore c
 ![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=androidstudio&logoColor=white)
 
 ## Rules, Practices and Principles
-1. Always use `Food-Traveler-` in the front of the repository name.
+1. Always use group name on the repository name.
 2. Ensure code is **commented and documented** for better maintainability.
 3. Maintain **clean, readable, and scalable code**.
 
