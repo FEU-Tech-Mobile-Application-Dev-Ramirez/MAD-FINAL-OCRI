@@ -10,7 +10,7 @@
 
 <br />
 
-![](https://visit-counter.vercel.app/counter.png?page=your-github-username/Food-Traveler)
+![](https://github.com/FEU-Tech-Mobile-Application-Dev-Ramirez/MAD-Collaborative.git)
 
 [![wakatime](https://wakatime.com/badge/user/your-wakatime-id/project/your-project-id.svg)](https://wakatime.com/badge/user/your-wakatime-id/project/your-project-id)
 
@@ -20,6 +20,7 @@
 <br />
 
 <details>
+  
   <summary>Table of Contents</summary>
   <ol>
     <li>
@@ -55,9 +56,7 @@ The **Food Traveler App** is designed for food enthusiasts who love to explore c
 
 ### Technology
 ![Kotlin](https://img.shields.io/badge/Kotlin-0095D5?style=for-the-badge&logo=kotlin&logoColor=white)
-![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
 ![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=androidstudio&logoColor=white)
-![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=white)
 
 ## Rules, Practices and Principles
 1. Always use `Food-Traveler-` in the front of the repository name.
