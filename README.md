@@ -87,11 +87,5 @@ Food-Traveler
    └─ fonts
 └─ README.md
 ```
-
-## Resources
-
-|-|-|-|
-| Kotlin Docs | Language reference and best practices | [Kotlin](https://kotlinlang.org/docs/home.html) |
-
 This README provides a clear and structured guide to the **Food Traveler App**, including its purpose, architecture, and best practices.
 
