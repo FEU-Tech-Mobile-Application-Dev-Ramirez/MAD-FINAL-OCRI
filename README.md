@@ -14,7 +14,7 @@
 
 ![](https://github.com/FEU-Tech-Mobile-Application-Dev-Ramirez/MAD-Collaborative.git)
 
-[![wakatime](https://wakatime.com/@0603ec0b-3837-4efb-a3db-98d524f4a210/projects/hyelcxdrgl?start=2025-03-26&end=2025-04-01)]([https://wakatime.com/badge/user/your-wakatime-id/project/your-project-id](https://wakatime.com/@0603ec0b-3837-4efb-a3db-98d524f4a210/projects/hyelcxdrgl?start=2025-03-26&end=2025-04-01))
+[![wakatime](https://wakatime.com/badge/user/0603ec0b-3837-4efb-a3db-98d524f4a210/project/hyelcxdrgl.svg)](https://wakatime.com/@0603ec0b-3837-4efb-a3db-98d524f4a210/projects/hyelcxdrgl)
 
 ---
 
