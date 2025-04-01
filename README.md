@@ -21,6 +21,8 @@
 <br />
 <br />
 
+
+
 <details>
   
   <summary>Table of Contents</summary>
@@ -89,3 +91,6 @@ Food-Traveler
    └─ fonts
 └─ README.md
 ```
+<div align="center">
+  "Food Traveler: Your Passport to Culinary Adventures!"
+</div>
