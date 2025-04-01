@@ -6,6 +6,7 @@
 
 <div align="center">
   Discover. Taste. Explore.
+  Food Traveler App
 </div>
 
 <br />
