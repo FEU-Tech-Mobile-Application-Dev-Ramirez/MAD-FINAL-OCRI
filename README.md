@@ -89,5 +89,3 @@ Food-Traveler
    └─ fonts
 └─ README.md
 ```
-This README provides a clear and structured guide to the **Food Traveler App**, including its purpose, architecture, and best practices.
-
