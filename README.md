@@ -15,10 +15,11 @@
 
 ![](https://visit-counter.vercel.app/counter.png?page=zyx-0314/food_traveler)
 
-[![wakatime]([https://wakatime.com/@942d0d8a-5b66-45b8-8468-2e24eb1f90c0/projects/xodmfhdlii?start=2025-03-27&end=2025-04-02](https://wakatime.com/@jimboppin/projects/hyelcxdrgl?start=2025-03-27&end=2025-04-02))
+[![wakatime](https://wakatime.com/badge/user/0603ec0b-3837-4efb-a3db-98d524f4a210/project/hyelcxdrgl.svg)](https://wakatime.com/@0603ec0b-3837-4efb-a3db-98d524f4a210/projects/hyelcxdrgl)
 
 ---
 
+<br />
 <br />
 
 
