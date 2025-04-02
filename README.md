@@ -48,7 +48,7 @@
 
 ## Overview
 
-The **Food Traveler App** is designed for food enthusiasts who love to explore culinary experiences while traveling. The app provides personalized restaurant recommendations, booking options, and user-generated reviews to ensure a seamless and enjoyable dining adventure.
+The **Food Traveler App** is designed for food enthusiasts who love to explore culinary experiences while traveling. The app provides personalized restaurant recommendations, and user-generated reviews to ensure a seamless and enjoyable dining adventure.
 
 ### Key Components
 - **Multi-Page Application** with seamless navigation
